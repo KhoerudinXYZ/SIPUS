@@ -57,4 +57,19 @@ class Borrowing extends Model
     {
         return $this->belongsTo(Book::class);
     }
+
+    /**
+     * Calculate fine based on today vs return_date.
+     */
+    public function calculateFine(): int
+    {
+        $today = now()->startOfDay();
+        $returnDate = $this->return_date->startOfDay();
+
+        if (! $today->greaterThan($returnDate)) {
+            return 0;
+        }
+
+        return abs($today->diffInDays($returnDate)) * config('library.fine_per_day');
+    }
 }

@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Borrowing;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class BorrowingController extends Controller
@@ -19,13 +20,11 @@ class BorrowingController extends Controller
         $query = Borrowing::with(['user', 'book']);
 
         if ($user->isAdmin()) {
-            // Admin can search and filter
             if ($request->filled('search')) {
                 $search = $request->search;
-                $query->whereHas('user', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%");
-                })->orWhereHas('book', function ($q) use ($search) {
-                    $q->where('title', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('book', fn ($b) => $b->where('title', 'like', "%{$search}%"));
                 });
             }
 
@@ -33,7 +32,6 @@ class BorrowingController extends Controller
                 $query->where('status', $request->status);
             }
         } else {
-            // Regular user only sees their own borrowings
             $query->where('user_id', $user->id);
 
             if ($request->filled('status')) {
@@ -58,9 +56,7 @@ class BorrowingController extends Controller
         ]);
 
         $user = $request->user();
-        $book = Book::findOrFail($request->book_id);
 
-        // 1. Check if user has unpaid fines
         $hasUnpaidFines = Borrowing::where('user_id', $user->id)
             ->where('fine_payment_status', 'unpaid')
             ->exists();
@@ -69,23 +65,16 @@ class BorrowingController extends Controller
             return redirect()->back()->with('error', 'Anda memiliki denda yang belum dibayar. Lunasi denda terlebih dahulu untuk melakukan reservasi baru.');
         }
 
-        // 2. Check if user has reached the maximum borrowing limit (3 books)
         $activeCount = Borrowing::where('user_id', $user->id)
             ->whereIn('status', ['reserved', 'borrowed', 'returning'])
             ->count();
 
-        if ($activeCount >= 3) {
-            return redirect()->back()->with('error', 'Anda telah mencapai batas maksimum peminjaman/reservasi (maksimal 3 buku).');
+        if ($activeCount >= config('library.max_loans')) {
+            return redirect()->back()->with('error', 'Anda telah mencapai batas maksimum peminjaman/reservasi (maksimal '.config('library.max_loans').' buku).');
         }
 
-        // 3. Check if book has stock
-        if ($book->stock <= 0) {
-            return redirect()->back()->with('error', 'Buku ini sedang habis stok.');
-        }
-
-        // 4. Check if user already reserved/borrowed this book
         $alreadyActive = Borrowing::where('user_id', $user->id)
-            ->where('book_id', $book->id)
+            ->where('book_id', $request->book_id)
             ->whereIn('status', ['reserved', 'borrowed', 'returning'])
             ->exists();
 
@@ -93,21 +82,33 @@ class BorrowingController extends Controller
             return redirect()->back()->with('error', 'Anda sudah melakukan reservasi atau meminjam buku ini.');
         }
 
-        // 5. Create borrowing record as reserved
-        Borrowing::create([
-            'user_id' => $user->id,
-            'book_id' => $book->id,
-            'borrow_date' => now(), // reservation date
-            'return_date' => now()->addDays(7), // placeholder
-            'status' => 'reserved',
-            'fine' => 0,
-            'fine_payment_status' => 'no_fine',
-        ]);
+        try {
+            $bookTitle = DB::transaction(function () use ($user, $request) {
+                $book = Book::lockForUpdate()->findOrFail($request->book_id);
 
-        // 6. Decrement book stock
-        $book->decrement('stock');
+                if ($book->stock <= 0) {
+                    throw new \RuntimeException('Buku ini sedang habis stok.');
+                }
 
-        return redirect()->route('dashboard')->with('success', 'Buku "'.$book->title.'" berhasil direservasi. Silakan ambil buku fisik di perpustakaan dalam waktu 24 jam.');
+                Borrowing::create([
+                    'user_id' => $user->id,
+                    'book_id' => $book->id,
+                    'borrow_date' => now(),
+                    'return_date' => now()->addDays(config('library.loan_days')),
+                    'status' => 'reserved',
+                    'fine' => 0,
+                    'fine_payment_status' => 'no_fine',
+                ]);
+
+                $book->decrement('stock');
+
+                return $book->title;
+            });
+        } catch (\RuntimeException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('dashboard')->with('success', 'Buku "'.$bookTitle.'" berhasil direservasi. Silakan ambil buku fisik di perpustakaan dalam waktu 24 jam.');
     }
 
     /**
@@ -116,7 +117,7 @@ class BorrowingController extends Controller
     public function confirmPickup(Request $request, Borrowing $borrowing): RedirectResponse
     {
         if (! $request->user()->isAdmin()) {
-            abort(403, 'Unauthorized action.');
+            abort(403);
         }
 
         if ($borrowing->status !== 'reserved') {
@@ -126,7 +127,7 @@ class BorrowingController extends Controller
         $borrowing->update([
             'status' => 'borrowed',
             'borrow_date' => now(),
-            'return_date' => now()->addDays(7), // 7 days starts now
+            'return_date' => now()->addDays(config('library.loan_days')),
         ]);
 
         return redirect()->back()->with('success', 'Pengambilan buku berhasil dikonfirmasi. Status peminjaman sekarang aktif.');
@@ -138,18 +139,14 @@ class BorrowingController extends Controller
     public function cancelReservation(Request $request, Borrowing $borrowing): RedirectResponse
     {
         if (! $request->user()->isAdmin() && $request->user()->id !== $borrowing->user_id) {
-            abort(403, 'Unauthorized action.');
+            abort(403);
         }
 
         if ($borrowing->status !== 'reserved') {
             return redirect()->back()->with('error', 'Hanya reservasi tertunda yang dapat dibatalkan.');
         }
 
-        $borrowing->update([
-            'status' => 'canceled',
-        ]);
-
-        // Return stock
+        $borrowing->update(['status' => 'canceled']);
         $borrowing->book->increment('stock');
 
         return redirect()->back()->with('success', 'Reservasi berhasil dibatalkan.');
@@ -160,9 +157,8 @@ class BorrowingController extends Controller
      */
     public function returnBook(Request $request, Borrowing $borrowing): RedirectResponse
     {
-        // Safety check: only admin can return book
         if (! $request->user()->isAdmin()) {
-            abort(403, 'Unauthorized action.');
+            abort(403);
         }
 
         if ($borrowing->status === 'returned') {
@@ -170,17 +166,8 @@ class BorrowingController extends Controller
         }
 
         if ($borrowing->status === 'borrowed') {
-            $today = now()->startOfDay();
-            $returnDate = $borrowing->return_date->startOfDay();
-            $fine = 0;
+            $fine = $borrowing->calculateFine();
 
-            // Calculate fine if overdue (Rp 1.000 per day)
-            if ($today->greaterThan($returnDate)) {
-                $daysOverdue = abs($today->diffInDays($returnDate));
-                $fine = $daysOverdue * 1000;
-            }
-
-            // Update borrowing record
             $borrowing->update([
                 'actual_return_date' => now(),
                 'status' => 'returned',
@@ -188,11 +175,11 @@ class BorrowingController extends Controller
                 'fine_payment_status' => $fine > 0 ? 'unpaid' : 'no_fine',
             ]);
 
-            // Increment book stock
             $borrowing->book->increment('stock');
 
             $message = 'Buku berhasil dikembalikan.';
             if ($fine > 0) {
+                $daysOverdue = abs(now()->startOfDay()->diffInDays($borrowing->return_date->startOfDay()));
                 $message .= ' Pengguna terlambat '.$daysOverdue.' hari dan dikenakan denda sebesar Rp '.number_format($fine, 0, ',', '.').' (Belum Dibayar).';
             } else {
                 $message .= ' Tepat waktu, tidak ada denda.';
@@ -202,12 +189,7 @@ class BorrowingController extends Controller
         }
 
         if ($borrowing->status === 'returning') {
-            // Admin confirms the return request submitted by user
-            $borrowing->update([
-                'status' => 'returned',
-            ]);
-
-            // Increment book stock
+            $borrowing->update(['status' => 'returned']);
             $borrowing->book->increment('stock');
 
             $message = 'Pengembalian buku berhasil dikonfirmasi.';
@@ -229,16 +211,14 @@ class BorrowingController extends Controller
     public function payFine(Request $request, Borrowing $borrowing): RedirectResponse
     {
         if (! $request->user()->isAdmin()) {
-            abort(403, 'Unauthorized action.');
+            abort(403);
         }
 
         if ($borrowing->fine_payment_status !== 'unpaid') {
             return redirect()->back()->with('error', 'Tidak ada denda menunggak untuk transaksi ini.');
         }
 
-        $borrowing->update([
-            'fine_payment_status' => 'paid',
-        ]);
+        $borrowing->update(['fine_payment_status' => 'paid']);
 
         return redirect()->back()->with('success', 'Denda sebesar Rp '.number_format($borrowing->fine, 0, ',', '.').' berhasil dilunasi.');
     }
@@ -248,26 +228,16 @@ class BorrowingController extends Controller
      */
     public function requestReturn(Request $request, Borrowing $borrowing): RedirectResponse
     {
-        // Safety check: user can only return their own borrowing
         if ($borrowing->user_id !== $request->user()->id) {
-            abort(403, 'Unauthorized action.');
+            abort(403);
         }
 
         if ($borrowing->status !== 'borrowed') {
             return redirect()->back()->with('error', 'Peminjaman ini tidak sedang aktif.');
         }
 
-        $today = now()->startOfDay();
-        $returnDate = $borrowing->return_date->startOfDay();
-        $fine = 0;
+        $fine = $borrowing->calculateFine();
 
-        // Calculate fine if overdue (Rp 1.000 per day)
-        if ($today->greaterThan($returnDate)) {
-            $daysOverdue = abs($today->diffInDays($returnDate));
-            $fine = $daysOverdue * 1000;
-        }
-
-        // Update borrowing record to lock fine and actual return date
         $borrowing->update([
             'actual_return_date' => now(),
             'status' => 'returning',

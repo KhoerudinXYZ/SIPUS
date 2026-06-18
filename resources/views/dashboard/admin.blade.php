@@ -186,48 +186,84 @@
             </div>
         </div>
 
-        <!-- Right 1 Col: Low stock alerts & Info -->
+        <!-- Right 1 Col: Pending Reservations + Low stock alerts + Info -->
         <div class="space-y-6">
-            
+
+            <!-- Reservasi Menunggu Konfirmasi -->
+            <div class="rounded-2xl border border-blue-100 bg-blue-50/40 p-6 shadow-sm">
+                <h2 class="text-base font-bold text-slate-900 border-b border-blue-100 pb-4 flex items-center justify-between gap-2">
+                    <span class="flex items-center gap-2">
+                        <span class="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+                        Reservasi Menunggu
+                    </span>
+                    @if($pendingReservations->isNotEmpty())
+                        <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-700">{{ $pendingReservations->count() }}</span>
+                    @endif
+                </h2>
+                <div class="mt-4 space-y-2.5">
+                    @if($pendingReservations->isEmpty())
+                        <div class="py-5 text-center text-slate-400 text-xs">Tidak ada reservasi tertunda.</div>
+                    @else
+                        @foreach($pendingReservations as $res)
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-white border border-blue-100 shadow-sm">
+                                <div class="min-w-0 flex-1 pr-2">
+                                    <p class="text-xs font-bold text-slate-900 truncate">{{ $res->user->name }}</p>
+                                    <p class="text-[10px] text-slate-400 truncate mt-0.5">{{ Str::limit($res->book->title, 24) }}</p>
+                                    <p class="text-[10px] text-blue-500 mt-0.5">{{ $res->borrow_date->diffForHumans() }}</p>
+                                </div>
+                                <form action="{{ route('borrowings.confirm-pickup', $res) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-2.5 py-1.5 text-[10px] font-bold text-white hover:bg-blue-500 transition-all shadow-sm whitespace-nowrap">
+                                        Serahkan
+                                    </button>
+                                </form>
+                            </div>
+                        @endforeach
+                        <a href="{{ route('borrowings.index', ['status' => 'reserved']) }}" class="block text-center text-xs font-semibold text-blue-600 hover:text-blue-500 mt-2">
+                            Lihat semua reservasi &rarr;
+                        </a>
+                    @endif
+                </div>
+            </div>
+
             <!-- Alert Stok Menipis -->
             <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm shadow-slate-100/40">
-                <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-4 flex items-center gap-2">
+                <h2 class="text-base font-bold text-slate-900 border-b border-slate-100 pb-4 flex items-center gap-2">
                     <span class="flex h-2 w-2 rounded-full bg-amber-500"></span>
                     Stok Buku Menipis
                 </h2>
-                
+
                 <div class="mt-4 space-y-3">
                     @if($lowStockBooks->isEmpty())
-                        <div class="py-6 text-center text-slate-400 text-xs">Semua buku memiliki stok yang cukup.</div>
+                        <div class="py-6 text-center text-slate-400 text-xs">Semua buku stok cukup.</div>
                     @else
                         @foreach($lowStockBooks as $book)
-                            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/80 hover:border-indigo-100 transition-colors">
+                            <a href="{{ route('books.show', $book) }}" class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100/80 hover:border-amber-200 transition-colors group">
                                 <div class="min-w-0 flex-1 pr-3">
-                                    <p class="text-xs font-bold text-slate-900 truncate">{{ $book->title }}</p>
+                                    <p class="text-xs font-bold text-slate-900 truncate group-hover:text-amber-700 transition-colors">{{ $book->title }}</p>
                                     <p class="text-[10px] text-slate-400 truncate mt-0.5">{{ $book->author }}</p>
                                 </div>
                                 <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold {{ $book->stock == 0 ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-amber-50 text-amber-700 border border-amber-100' }}">
                                     Stok: {{ $book->stock }}
                                 </span>
-                            </div>
+                            </a>
                         @endforeach
                     @endif
                 </div>
             </div>
 
-            <!-- Quick Info / Panduan Denda -->
-            <div class="rounded-2xl bg-gradient-to-br from-indigo-50/50 to-violet-50/50 border border-indigo-100/50 p-6 shadow-sm">
-                <h3 class="font-bold text-indigo-950 text-sm flex items-center gap-2">
+            <!-- Quick Info -->
+            <div class="rounded-2xl bg-gradient-to-br from-indigo-50/50 to-violet-50/50 border border-indigo-100/50 p-5 shadow-sm">
+                <h3 class="font-bold text-indigo-950 text-sm flex items-center gap-2 mb-3">
                     <svg class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
                     </svg>
-                    Informasi Ketentuan Fines
+                    Ketentuan Perpustakaan
                 </h3>
-                <ul class="mt-3 space-y-2 text-xs text-indigo-900/80 leading-relaxed list-disc list-inside">
-                    <li>Batas peminjaman setiap buku adalah 7 hari.</li>
-                    <li>Sistem otomatis mendeteksi keterlambatan.</li>
-                    <li>Denda keterlambatan ditetapkan sebesar Rp1.000,- per hari keterlambatan.</li>
-                    <li>Denda dihitung saat tombol 'Kembalikan' diklik oleh admin.</li>
+                <ul class="space-y-1.5 text-xs text-indigo-900/80 leading-relaxed">
+                    <li class="flex items-start gap-2"><span class="text-indigo-400 mt-0.5">•</span> Durasi peminjaman: <strong>{{ config('library.loan_days') }} hari</strong></li>
+                    <li class="flex items-start gap-2"><span class="text-indigo-400 mt-0.5">•</span> Denda: <strong>Rp{{ number_format(config('library.fine_per_day'), 0, ',', '.') }}/hari</strong> keterlambatan</li>
+                    <li class="flex items-start gap-2"><span class="text-indigo-400 mt-0.5">•</span> Batas pinjam: <strong>{{ config('library.max_loans') }} buku</strong> per anggota</li>
                 </ul>
             </div>
 

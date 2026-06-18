@@ -5,31 +5,11 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\BorrowingController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
-use App\Models\Book;
-use App\Models\Borrowing;
-use App\Models\Category;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
-// Redirect root to dashboard/login
-Route::get('/', function () {
-    $newBooks = Book::with('category')->latest()->take(6)->get();
-    $popularBooks = Book::withCount('borrowings')->orderBy('borrowings_count', 'desc')->take(6)->get();
-    $totalBooks = Book::count();
-    $totalUsers = User::where('role', 'user')->count();
-    $totalBorrowings = Borrowing::where('status', 'borrowed')->count();
-    $totalCategories = Category::count();
-
-    return view('welcome', compact(
-        'newBooks',
-        'popularBooks',
-        'totalBooks',
-        'totalUsers',
-        'totalBorrowings',
-        'totalCategories'
-    ));
-});
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
@@ -44,8 +24,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Books Listing (Shared between Admin & User)
+    // Books Listing & Detail (Shared between Admin & User)
     Route::get('/books', [BookController::class, 'index'])->name('books.index');
+    Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
 
     // Borrowings Listing (Shared, but list data filtered by controller)
     Route::get('/borrowings', [BorrowingController::class, 'index'])->name('borrowings.index');

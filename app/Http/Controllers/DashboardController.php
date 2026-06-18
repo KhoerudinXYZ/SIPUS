@@ -31,8 +31,13 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get();
 
-            // Book stock alerts (stock <= 2)
-            $lowStockBooks = Book::where('stock', '<=', 2)->get();
+            $pendingReservations = Borrowing::with(['user', 'book'])
+                ->where('status', 'reserved')
+                ->latest()
+                ->limit(5)
+                ->get();
+
+            $lowStockBooks = Book::where('stock', '<=', config('library.low_stock_threshold'))->get();
 
             return view('dashboard.admin', compact(
                 'totalBooks',
@@ -41,7 +46,8 @@ class DashboardController extends Controller
                 'totalReturned',
                 'totalFines',
                 'latestBorrowings',
-                'lowStockBooks'
+                'lowStockBooks',
+                'pendingReservations'
             ));
         }
 

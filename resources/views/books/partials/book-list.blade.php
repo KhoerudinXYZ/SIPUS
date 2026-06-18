@@ -9,7 +9,7 @@
 @else
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         @foreach($books as $book)
-            <div class="flex flex-col rounded-2xl border border-white/40 bg-white shadow-lg shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group overflow-hidden relative cursor-pointer">
+            <div class="flex flex-col rounded-2xl border border-white/40 bg-white shadow-lg shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group overflow-hidden relative cursor-pointer" onclick="window.location='{{ route('books.show', $book) }}'"
                 
                 <!-- Cover Container -->
                 <div class="relative aspect-[3/4] bg-indigo-50 flex items-center justify-center text-indigo-400 overflow-hidden">
