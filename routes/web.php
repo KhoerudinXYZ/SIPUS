@@ -26,7 +26,6 @@ Route::middleware('auth')->group(function () {
 
     // Books Listing & Detail (Shared between Admin & User)
     Route::get('/books', [BookController::class, 'index'])->name('books.index');
-    Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
 
     // Borrowings Listing (Shared, but list data filtered by controller)
     Route::get('/borrowings', [BorrowingController::class, 'index'])->name('borrowings.index');
@@ -58,4 +57,7 @@ Route::middleware('auth')->group(function () {
         // Users CRUD
         Route::resource('users', UserController::class)->except(['show']);
     });
+
+    // Book Detail — harus setelah /books/create agar tidak bentrok dengan wildcard {book}
+    Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
 });
