@@ -212,8 +212,9 @@
     <footer class="border-t border-slate-100 bg-white py-6">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <p>&copy; {{ date('Y') }} Sistem Informasi Perpustakaan Digital (SIPUS). Hak cipta dilindungi.</p>
-            <div class="flex gap-4">
-                <span class="hover:text-slate-800 transition-colors">Budi Setiawan & Admin Developer</span>
+            <div class="flex gap-4 items-center">
+                <span>Built with <span class="text-red-400">&#9829;</span> by <span class="font-semibold text-slate-700">KhoerudinXYZ</span> & <span class="font-semibold text-indigo-600">Claude</span></span>
+                <span class="text-slate-300">|</span>
                 <span>Laravel 12 + Tailwind CSS</span>
             </div>
         </div>

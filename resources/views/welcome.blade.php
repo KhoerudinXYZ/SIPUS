@@ -665,6 +665,12 @@
                 <p class="text-sm text-slate-500">
                     &copy; {{ date('Y') }} SIPUS PerpusDigital. Hak cipta dilindungi.
                 </p>
+                <p class="text-sm text-slate-500">
+                    Built with <span class="text-red-400">&#9829;</span> by
+                    <span class="font-semibold text-slate-300">KhoerudinXYZ</span>
+                    <span class="text-slate-600">&</span>
+                    <span class="font-semibold text-indigo-400">Claude</span>
+                </p>
                 <div class="flex items-center gap-6 text-sm text-slate-500">
                     <a href="#" class="hover:text-white transition-colors">Kebijakan Privasi</a>
                     <a href="#" class="hover:text-white transition-colors">Syarat Ketentuan</a>
