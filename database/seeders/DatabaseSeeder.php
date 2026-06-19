@@ -7,6 +7,7 @@ use App\Models\Borrowing;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,19 +17,23 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Create Admin
-        User::factory()->create([
+        User::create([
             'name' => 'Administrator Perpustakaan',
             'email' => 'admin@perpustakaan.com',
             'password' => Hash::make('password'),
             'role' => 'admin',
+            'email_verified_at' => now(),
+            'remember_token' => Str::random(10),
         ]);
 
         // Create Regular User
-        $user = User::factory()->create([
+        $user = User::create([
             'name' => 'Budi Setiawan',
             'email' => 'user@perpustakaan.com',
             'password' => Hash::make('password'),
             'role' => 'user',
+            'email_verified_at' => now(),
+            'remember_token' => Str::random(10),
         ]);
 
         // Create Books
