@@ -450,8 +450,8 @@
             <div x-ref="slider" class="flex gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-8 pt-4 px-4 -mx-4">
                 @foreach($newBooks as $book)
                 <div class="snap-start shrink-0 w-64 bg-white rounded-2xl shadow-sm hover:shadow-2xl border border-slate-100 transition-all duration-300 transform hover:-translate-y-2 group flex flex-col cursor-pointer"
-                     x-data='{ "book": @json(["title" => $book->title, "author" => $book->author, "publisher" => $book->publisher, "category" => $book->category?->name ?? "Tanpa Kategori", "cover" => $book->cover_image ? asset($book->cover_image) : "", "borrowings_count" => $book->borrowings_count ?? 0, "year" => $book->year, "stock" => $book->stock]) }'
-                     @click="activeBook = book; showQuickView = true">
+                     data-book="{{ json_encode(['title' => $book->title, 'author' => $book->author, 'publisher' => $book->publisher, 'category' => $book->category?->name ?? 'Tanpa Kategori', 'cover' => $book->cover_image ? asset($book->cover_image) : '', 'borrowings_count' => $book->borrowings_count ?? 0, 'year' => $book->year, 'stock' => $book->stock]) }}"
+                     @click="activeBook = JSON.parse($el.dataset.book); showQuickView = true">
                     <div class="h-80 w-full bg-slate-100 overflow-hidden relative rounded-t-2xl">
                         @if($book->cover_image)
                             <img src="{{ asset($book->cover_image) }}" alt="{{ $book->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
@@ -518,8 +518,8 @@
             <div x-ref="slider" class="flex gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-8 pt-4 px-4 -mx-4">
                 @foreach($popularBooks as $book)
                 <div class="snap-start shrink-0 w-64 bg-white rounded-2xl shadow-sm hover:shadow-2xl border border-slate-100 transition-all duration-300 transform hover:-translate-y-2 group flex flex-col cursor-pointer"
-                     x-data='{ "book": @json(["title" => $book->title, "author" => $book->author, "publisher" => $book->publisher, "category" => $book->category?->name ?? "Tanpa Kategori", "cover" => $book->cover_image ? asset($book->cover_image) : "", "borrowings_count" => $book->borrowings_count ?? 0, "year" => $book->year, "stock" => $book->stock]) }'
-                     @click="activeBook = book; showQuickView = true">
+                     data-book="{{ json_encode(['title' => $book->title, 'author' => $book->author, 'publisher' => $book->publisher, 'category' => $book->category?->name ?? 'Tanpa Kategori', 'cover' => $book->cover_image ? asset($book->cover_image) : '', 'borrowings_count' => $book->borrowings_count ?? 0, 'year' => $book->year, 'stock' => $book->stock]) }}"
+                     @click="activeBook = JSON.parse($el.dataset.book); showQuickView = true">
                     <div class="h-80 w-full bg-slate-100 overflow-hidden relative rounded-t-2xl">
                         <div class="absolute top-0 left-0 w-12 h-12 bg-amber-500 text-white flex items-center justify-center font-black text-xl rounded-br-2xl z-10 shadow-lg">
                             #{{ $loop->iteration }}
