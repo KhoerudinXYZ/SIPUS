@@ -17,24 +17,28 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Create Admin
-        User::create([
-            'name' => 'Administrator Perpustakaan',
-            'email' => 'admin@perpustakaan.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-            'email_verified_at' => now(),
-            'remember_token' => Str::random(10),
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@perpustakaan.com'],
+            [
+                'name' => 'Administrator Perpustakaan',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'email_verified_at' => now(),
+                'remember_token' => Str::random(10),
+            ]
+        );
 
         // Create Regular User
-        $user = User::create([
-            'name' => 'Budi Setiawan',
-            'email' => 'user@perpustakaan.com',
-            'password' => Hash::make('password'),
-            'role' => 'user',
-            'email_verified_at' => now(),
-            'remember_token' => Str::random(10),
-        ]);
+        $user = User::updateOrCreate(
+            ['email' => 'user@perpustakaan.com'],
+            [
+                'name' => 'Budi Setiawan',
+                'password' => Hash::make('password'),
+                'role' => 'user',
+                'email_verified_at' => now(),
+                'remember_token' => Str::random(10),
+            ]
+        );
 
         // Create Books
         $books = [
@@ -97,7 +101,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($books as $bookData) {
-            Book::create($bookData);
+            Book::updateOrCreate(['isbn' => $bookData['isbn']], $bookData);
         }
 
         // Add some sample borrowings
