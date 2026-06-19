@@ -450,11 +450,11 @@
             <div x-ref="slider" class="flex gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-8 pt-4 px-4 -mx-4">
                 @foreach($newBooks as $book)
                 <div class="snap-start shrink-0 w-64 bg-white rounded-2xl shadow-sm hover:shadow-2xl border border-slate-100 transition-all duration-300 transform hover:-translate-y-2 group flex flex-col cursor-pointer"
-                     data-book="{{ json_encode(['title' => $book->title, 'author' => $book->author, 'publisher' => $book->publisher, 'category' => $book->category?->name ?? 'Tanpa Kategori', 'cover' => $book->cover_image ? asset($book->cover_image) : '', 'borrowings_count' => $book->borrowings_count ?? 0, 'year' => $book->year, 'stock' => $book->stock]) }}"
+                     data-book="{{ json_encode(['title' => $book->title, 'author' => $book->author, 'publisher' => $book->publisher, 'category' => $book->category?->name ?? 'Tanpa Kategori', 'cover' => $book->cover_url ?? '', 'borrowings_count' => $book->borrowings_count ?? 0, 'year' => $book->year, 'stock' => $book->stock]) }}"
                      @click="activeBook = JSON.parse($el.dataset.book); showQuickView = true">
                     <div class="h-80 w-full bg-slate-100 overflow-hidden relative rounded-t-2xl">
                         @if($book->cover_image)
-                            <img src="{{ asset($book->cover_image) }}" alt="{{ $book->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         @else
                             <div class="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-100 group-hover:scale-105 transition-transform duration-500">
                                 <svg class="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
@@ -518,14 +518,14 @@
             <div x-ref="slider" class="flex gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-8 pt-4 px-4 -mx-4">
                 @foreach($popularBooks as $book)
                 <div class="snap-start shrink-0 w-64 bg-white rounded-2xl shadow-sm hover:shadow-2xl border border-slate-100 transition-all duration-300 transform hover:-translate-y-2 group flex flex-col cursor-pointer"
-                     data-book="{{ json_encode(['title' => $book->title, 'author' => $book->author, 'publisher' => $book->publisher, 'category' => $book->category?->name ?? 'Tanpa Kategori', 'cover' => $book->cover_image ? asset($book->cover_image) : '', 'borrowings_count' => $book->borrowings_count ?? 0, 'year' => $book->year, 'stock' => $book->stock]) }}"
+                     data-book="{{ json_encode(['title' => $book->title, 'author' => $book->author, 'publisher' => $book->publisher, 'category' => $book->category?->name ?? 'Tanpa Kategori', 'cover' => $book->cover_url ?? '', 'borrowings_count' => $book->borrowings_count ?? 0, 'year' => $book->year, 'stock' => $book->stock]) }}"
                      @click="activeBook = JSON.parse($el.dataset.book); showQuickView = true">
                     <div class="h-80 w-full bg-slate-100 overflow-hidden relative rounded-t-2xl">
                         <div class="absolute top-0 left-0 w-12 h-12 bg-amber-500 text-white flex items-center justify-center font-black text-xl rounded-br-2xl z-10 shadow-lg">
                             #{{ $loop->iteration }}
                         </div>
                         @if($book->cover_image)
-                            <img src="{{ asset($book->cover_image) }}" alt="{{ $book->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         @else
                             <div class="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-100 group-hover:scale-105 transition-transform duration-500">
                                 <svg class="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>

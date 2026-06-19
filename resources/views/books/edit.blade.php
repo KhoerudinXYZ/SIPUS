@@ -107,7 +107,7 @@
                 <label for="cover_image" class="block text-sm font-semibold text-slate-700">Sampul Buku (Opsional)</label>
                 @if($book->cover_image)
                     <div class="mt-2 mb-3 flex items-center gap-4">
-                        <img src="{{ asset($book->cover_image) }}" alt="{{ $book->title }}" class="h-20 w-16 rounded-lg border border-slate-200 object-cover shadow-sm">
+                        <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="h-20 w-16 rounded-lg border border-slate-200 object-cover shadow-sm">
                         <span class="text-xs text-slate-500">Sampul saat ini. Upload baru untuk mengganti.</span>
                     </div>
                 @endif

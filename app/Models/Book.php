@@ -26,6 +26,26 @@ class Book extends Model
     ];
 
     /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'year' => 'integer',
+            'stock' => 'integer',
+        ];
+    }
+
+    public function getCoverUrlAttribute(): ?string
+    {
+        if (! $this->cover_image) {
+            return null;
+        }
+
+        return $this->cover_image;
+    }
+
+    /**
      * Get the borrowings for the book.
      *
      * @return HasMany<Borrowing, $this>

@@ -191,7 +191,7 @@
                                 <!-- Cover image placeholder/rendered -->
                                 <div class="flex-shrink-0 h-16 w-12 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-500 font-bold overflow-hidden shadow-sm">
                                     @if($book->cover_image)
-                                        <img src="{{ asset($book->cover_image) }}" alt="{{ $book->title }}" class="h-full w-full object-cover">
+                                        <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="h-full w-full object-cover">
                                     @else
                                         <span class="text-xs">{{ Str::limit($book->title, 2, '') }}</span>
                                     @endif

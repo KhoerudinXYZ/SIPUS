@@ -60,6 +60,28 @@ return [
             'report' => false,
         ],
 
+        'cloudinary' => [
+            'driver' => 'cloudinary',
+            'cloud' => env('CLOUDINARY_CLOUD_NAME'),
+            'key' => env('CLOUDINARY_API_KEY'),
+            'secret' => env('CLOUDINARY_API_SECRET'),
+            'secure' => true,
+        ],
+
+        'r2' => [
+            'driver' => 's3',
+            'key' => env('CLOUDFLARE_R2_ACCESS_KEY_ID'),
+            'secret' => env('CLOUDFLARE_R2_SECRET_ACCESS_KEY'),
+            'region' => 'auto',
+            'bucket' => env('CLOUDFLARE_R2_BUCKET'),
+            'url' => env('CLOUDFLARE_R2_URL'),
+            'endpoint' => env('CLOUDFLARE_R2_ENDPOINT'),
+            'use_path_style_endpoint' => false,
+            'visibility' => 'public',
+            'throw' => true,
+            'report' => false,
+        ],
+
     ],
 
     /*

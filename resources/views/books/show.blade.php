@@ -24,7 +24,7 @@
             {{-- Cover Image Column --}}
             <div class="md:col-span-2 relative min-h-[400px] bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center overflow-hidden group">
                 @if($book->cover_image)
-                    <img src="{{ asset($book->cover_image) }}" alt="{{ $book->title }}"
+                    <img src="{{ $book->cover_url }}" alt="{{ $book->title }}"
                          class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                     <div class="absolute inset-0 bg-gradient-to-t from-slate-900/50 via-transparent to-transparent"></div>
                 @else
@@ -182,7 +182,7 @@
                    class="group flex flex-col rounded-2xl border border-white/40 bg-white shadow-md shadow-slate-200/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
                     <div class="aspect-[3/4] bg-indigo-50 overflow-hidden relative">
                         @if($related->cover_image)
-                            <img src="{{ asset($related->cover_image) }}" alt="{{ $related->title }}"
+                            <img src="{{ $related->cover_url }}" alt="{{ $related->title }}"
                                  class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500">
                         @else
                             <div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-indigo-100 to-violet-100 text-indigo-400">

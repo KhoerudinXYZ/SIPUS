@@ -14,7 +14,7 @@
                 <!-- Cover Container -->
                 <div class="relative aspect-[3/4] bg-indigo-50 flex items-center justify-center text-indigo-400 overflow-hidden">
                     @if($book->cover_image)
-                        <img src="{{ asset($book->cover_image) }}" alt="{{ $book->title }}" class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out">
+                        <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out">
                     @else
                         <div class="flex flex-col items-center gap-2 p-4 text-center group-hover:scale-105 transition-transform duration-700">
                             <svg class="h-10 w-10 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

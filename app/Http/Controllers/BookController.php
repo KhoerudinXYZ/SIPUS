@@ -9,7 +9,6 @@ use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\File;
 use Illuminate\View\View;
 
 class BookController extends Controller
@@ -81,16 +80,11 @@ class BookController extends Controller
         $data = $request->validated();
 
         if ($request->hasFile('cover_image')) {
-            $image = $request->file('cover_image');
-            $imageName = time().'_'.uniqid().'.'.$image->getClientOriginalExtension();
-
-            // Ensure covers directory exists
-            if (! File::exists(public_path('covers'))) {
-                File::makeDirectory(public_path('covers'), 0755, true);
-            }
-
-            $image->move(public_path('covers'), $imageName);
-            $data['cover_image'] = 'covers/'.$imageName;
+            $result = cloudinary()->uploadApi()->upload(
+                $request->file('cover_image')->getRealPath(),
+                ['folder' => 'perpustakaan/covers']
+            );
+            $data['cover_image'] = $result['secure_url'];
         }
 
         Book::create($data);
@@ -116,20 +110,15 @@ class BookController extends Controller
         $data = $request->validated();
 
         if ($request->hasFile('cover_image')) {
-            // Delete old cover if exists
-            if ($book->cover_image && File::exists(public_path($book->cover_image))) {
-                File::delete(public_path($book->cover_image));
+            if ($book->cover_image && str_starts_with($book->cover_image, 'http')) {
+                cloudinary()->uploadApi()->destroy($this->extractCloudinaryPublicId($book->cover_image));
             }
 
-            $image = $request->file('cover_image');
-            $imageName = time().'_'.uniqid().'.'.$image->getClientOriginalExtension();
-
-            if (! File::exists(public_path('covers'))) {
-                File::makeDirectory(public_path('covers'), 0755, true);
-            }
-
-            $image->move(public_path('covers'), $imageName);
-            $data['cover_image'] = 'covers/'.$imageName;
+            $result = cloudinary()->uploadApi()->upload(
+                $request->file('cover_image')->getRealPath(),
+                ['folder' => 'perpustakaan/covers']
+            );
+            $data['cover_image'] = $result['secure_url'];
         }
 
         $book->update($data);
@@ -150,12 +139,21 @@ class BookController extends Controller
             return redirect()->back()->with('error', 'Buku "'.$book->title.'" tidak dapat dihapus karena masih ada peminjaman aktif.');
         }
 
-        if ($book->cover_image && File::exists(public_path($book->cover_image))) {
-            File::delete(public_path($book->cover_image));
+        if ($book->cover_image && str_starts_with($book->cover_image, 'http')) {
+            cloudinary()->uploadApi()->destroy($this->extractCloudinaryPublicId($book->cover_image));
         }
 
         $book->delete();
 
         return redirect()->route('books.index')->with('success', 'Buku "'.$book->title.'" berhasil dihapus.');
+    }
+
+    private function extractCloudinaryPublicId(string $url): string
+    {
+        $path = parse_url($url, PHP_URL_PATH);
+        $afterUpload = explode('/upload/', $path)[1] ?? '';
+        $withoutVersion = preg_replace('/^v\d+\//', '', $afterUpload);
+
+        return preg_replace('/\.[^.]+$/', '', $withoutVersion);
     }
 }
